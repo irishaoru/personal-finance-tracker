@@ -20,9 +20,11 @@ index.html as a file, because JavaScript modules require a server.
 
 ### Features
 
-Four hash-linked views: **Home** (overview and recent activity), **Expenses**
-(transaction search, filters, and cash entries), **Bank accounts** (connection
-controls and imported account IDs), and **Insights** (behavioral patterns).
+Four hash-linked views: **Home** (high-level totals and recent activity),
+**Expenses** (only transaction search, filters, and cash entries), **Bank accounts**
+(connection controls and imported account IDs), and **Insights** (full category
+breakdown, weekday chart, median/largest purchase, purchase-size bands, and repeated
+transaction names).
 Links such as `#expenses` work on GitHub Pages and support browser back/forward.
 Accounts are derived from saved transaction records; the API does not supply
 account names or balances, so these are not invented.
@@ -90,3 +92,9 @@ backend. Local browser access will need `http://localhost:5173` configured again
 This code and guide were generated with Codex. Write your own project overview,
 learning notes, and feature reflections for the class README; keep a separate
 prompt log with your actual prompts and personal modifications.
+
+Purchase analysis uses positive posted records in the selected period and currency.
+Median is the middle amount (or the mean of the two middle amounts). Size bands
+are under 20, 20 to under 100, and 100 or more currency units. Merchant names
+are grouped after trimming and lowercasing; repetition does not establish a
+subscription. Imported sample connections may share names and amounts.

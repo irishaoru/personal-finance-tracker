@@ -1,5 +1,5 @@
 import { request, importTransactions } from './api.js';
-import { summarize, filterPeriod, categoryName, money, localDate } from './insights.js';
+import { summarize, filterPeriod, analyzePurchases, categoryName, money, localDate } from './insights.js';
 
 const $ = id => document.getElementById(id);
 const state = { records: [], connected: false, busy: false, page: 1, view: 'home' };
@@ -10,7 +10,7 @@ const views = {
   home: { label: 'Home', title: 'Your money at a glance.', description: 'A clear view of your spending, and the habits behind it.', section: 'Money overview' },
   expenses: { label: 'Expenses', title: 'Every purchase tells a story.', description: 'Explore your transactions, spot the details, and capture the little things.', section: 'Spending overview' },
   accounts: { label: 'Bank accounts', title: 'Your accounts, connected.', description: 'Bring your simulated bank data into one shared workspace.' },
-  insights: { label: 'Insights', title: 'Get to know your habits.', description: 'Simple observations that help you understand the bigger picture.', section: 'Your spending patterns' },
+  insights: { label: 'Insights', title: 'Go beyond the totals.', description: 'Explore where, when, and how often your money moves.', section: 'Explore your spending patterns' },
 };
 
 function navigate() {
@@ -22,6 +22,11 @@ function navigate() {
   $('page-title').textContent = view.title;
   $('page-description').textContent = view.description;
   $('section-title').textContent = view.section || 'Money overview';
+  // Reuse the same filters inside Expenses, so the page starts with its list
+  // instead of another overview section. Filter choices remain consistent.
+  const filterParent = state.view === 'expenses' ? $('expense-controls')
+    : document.querySelector('.filter-heading');
+  filterParent.append($('overview-controls'));
   $('page-eyebrow').textContent = state.view === 'home' ? 'A LITTLE CLARITY, EVERY DAY' : `YOUR WORKSPACE / ${view.label.toUpperCase()}`;
   document.querySelectorAll('[data-views]').forEach(node => {
     node.hidden = !node.dataset.views.split(' ').includes(state.view);
@@ -162,6 +167,7 @@ function render() {
   renderCategories(totals, format);
   renderWeekdays(totals, format);
   renderInsights(totals, format);
+  renderPurchaseDetails(rows, format);
   renderTable(rows, format);
   renderRecent(rows, format);
   renderAccounts();
@@ -209,9 +215,7 @@ function renderAccounts() {
 function renderCategories(totals, format) {
   const node = $('categories'); node.replaceChildren();
   if (!totals.categories.length) { node.append(element('p', 'No posted outflows in this period. Try a different period or load sample data.', 'empty')); return; }
-  const groups = totals.categories.slice(0, 4);
-  const remaining = totals.categories.slice(4).reduce((sum, [,amount]) => sum + amount, 0);
-  if (remaining) groups.push(['OTHER_CATEGORIES', remaining]);
+  const groups = totals.categories;
   for (const [name, amount] of groups) {
     const row = element('div', undefined, 'category-row');
     const label = element('div', undefined, 'category-label');
@@ -221,6 +225,40 @@ function renderCategories(totals, format) {
     fill.style.width = `${amount / totals.spending * 100}%`;
     track.append(fill); row.append(label, track); node.append(row);
   }
+}
+
+function renderPurchaseDetails(rows, format) {
+  const profile = analyzePurchases(rows);
+  const facts = [
+    ['Typical purchase (median)', format(profile.median)],
+    ['Largest single outflow', profile.largest ? format(Number(profile.largest.amount)) : '—'],
+    ['Days with purchases', String(profile.activeDays)],
+  ];
+  $('purchase-profile').replaceChildren(...facts.map(([label, value], index) => {
+    const fact = element('div', undefined, 'profile-fact');
+    fact.append(element('span', label), element('strong', value));
+    if (index === 1 && profile.largest) fact.append(element('small', `${profile.largest.name} · ${profile.largest.date}`));
+    return fact;
+  }));
+  $('purchase-bands').replaceChildren(...profile.bands.map(band => {
+    const row = element('div', undefined, 'size-band');
+    const label = element('div', undefined, 'category-label');
+    const share = profile.count ? Math.round(band.count / profile.count * 100) : 0;
+    label.append(element('strong', band.label), element('span', `${band.count} purchases · ${share}% of count`));
+    const track = element('div', undefined, 'track');
+    const fill = element('div', undefined, 'track-fill');
+    fill.style.width = `${share}%`; track.append(fill);
+    row.append(label, track, element('small', `${format(band.total)} in total`));
+    return row;
+  }));
+  const merchantRows = profile.merchants.slice(0, 6);
+  $('repeat-merchants').replaceChildren(...merchantRows.map(merchant => {
+    const row = element('div', undefined, 'merchant-row');
+    row.append(element('strong', merchant.name), element('span', `${merchant.count} purchases`), element('span', format(merchant.total), 'merchant-total'));
+    return row;
+  }));
+  if (!merchantRows.length) $('repeat-merchants').append(element('p', 'No repeated names in the selected posted purchases. Try another period or currency.', 'empty'));
+  if (!profile.count) $('purchase-profile').replaceChildren(element('p', 'No posted outflows in this selection yet.', 'empty'));
 }
 
 function renderWeekdays(totals, format) {
