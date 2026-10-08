@@ -2,9 +2,43 @@ import { request, importTransactions } from './api.js';
 import { summarize, filterPeriod, categoryName, money, localDate } from './insights.js';
 
 const $ = id => document.getElementById(id);
-const state = { records: [], connected: false, busy: false, page: 1 };
+const state = { records: [], connected: false, busy: false, page: 1, view: 'home' };
 const pageSize = 10;
 const days = ['Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday', 'Sunday'];
+
+const views = {
+  home: { label: 'Home', title: 'Your money at a glance.', description: 'A clear view of your spending, and the habits behind it.', section: 'Money overview' },
+  expenses: { label: 'Expenses', title: 'Every purchase tells a story.', description: 'Explore your transactions, spot the details, and capture the little things.', section: 'Spending overview' },
+  accounts: { label: 'Bank accounts', title: 'Your accounts, connected.', description: 'Bring your simulated bank data into one shared workspace.' },
+  insights: { label: 'Insights', title: 'Get to know your habits.', description: 'Simple observations that help you understand the bigger picture.', section: 'Your spending patterns' },
+};
+
+function navigate() {
+  const requested = location.hash.slice(1) || 'home';
+  state.view = Object.hasOwn(views, requested) ? requested : 'home';
+  const view = views[state.view];
+  document.title = `${view.label} — Spendwise`;
+  $('breadcrumb').textContent = `Workspace / ${view.label}`;
+  $('page-title').textContent = view.title;
+  $('page-description').textContent = view.description;
+  $('section-title').textContent = view.section || 'Money overview';
+  $('page-eyebrow').textContent = state.view === 'home' ? 'A LITTLE CLARITY, EVERY DAY' : `YOUR WORKSPACE / ${view.label.toUpperCase()}`;
+  document.querySelectorAll('[data-views]').forEach(node => {
+    node.hidden = !node.dataset.views.split(' ').includes(state.view);
+  });
+  document.querySelectorAll('[data-page]').forEach(link => {
+    const active = link.dataset.page === state.view;
+    link.classList.toggle('active', active);
+    if (active) link.setAttribute('aria-current', 'page');
+    else link.removeAttribute('aria-current');
+  });
+  render();
+}
+
+window.addEventListener('hashchange', () => {
+  navigate(); window.scrollTo({ top: 0 }); $('main').focus({ preventScroll: true });
+});
+$('page-date').textContent = new Intl.DateTimeFormat('en-US', { month: 'short', day: 'numeric', year: 'numeric' }).format(new Date());
 
 // All transaction text is placed through textContent, never interpolated into HTML.
 function element(tag, text, className) {
@@ -23,6 +57,7 @@ function notify(message, error = false) {
 function setBusy(busy) {
   state.busy = busy;
   for (const id of ['connect', 'demo-connect', 'refresh', 'add']) $(id).disabled = busy;
+  document.querySelectorAll('[data-add-cash]').forEach(button => { button.disabled = busy; });
   $('import').disabled = busy || !state.connected;
 }
 
@@ -128,6 +163,47 @@ function render() {
   renderWeekdays(totals, format);
   renderInsights(totals, format);
   renderTable(rows, format);
+  renderRecent(rows, format);
+  renderAccounts();
+}
+
+function renderRecent(rows, format) {
+  const recent = [...rows].sort((a, b) => b.date.localeCompare(a.date)).slice(0, 4);
+  $('recent-transactions').replaceChildren(...recent.map(row => {
+    const item = element('div', undefined, 'recent-row');
+    const icon = element('span', row.source === 'manual' ? '◈' : '↗', 'transaction-icon');
+    icon.setAttribute('aria-hidden', 'true');
+    const info = element('div'); info.append(element('strong', row.name), element('small', `${categoryName(row.category)} · ${row.date}${row.pending ? ' · Pending' : ''}`));
+    item.append(icon, info, element('span', `${Number(row.amount) < 0 ? '+' : '−'}${format(Math.abs(Number(row.amount)))}`, 'recent-amount'));
+    return item;
+  }));
+  if (!recent.length) $('recent-transactions').append(element('p', 'No activity in this period yet. Visit Bank accounts to load a sample connection.', 'empty'));
+}
+
+function renderAccounts() {
+  const accounts = new Map();
+  for (const row of state.records) {
+    if (row.source !== 'plaid' || !row.account_id) continue;
+    if (!accounts.has(row.account_id)) accounts.set(row.account_id, []);
+    accounts.get(row.account_id).push(row);
+  }
+  $('account-count').textContent = `${accounts.size} account${accounts.size === 1 ? '' : 's'} in saved history`;
+  $('account-cards').replaceChildren(...[...accounts].map(([id, records], index) => {
+    const card = element('article', undefined, 'account-card');
+    const header = element('div', undefined, 'account-card-heading');
+    header.append(element('span', '▣', 'account-icon'), element('span', 'SIMULATED ACCOUNT', 'account-tag'));
+    const subtitle = element('p', `Account ID ending ${id.slice(-6)}`, 'account-subtitle');
+    const currencies = [...new Set(records.map(row => row.currency))];
+    const lastDate = records.map(row => row.date).sort().at(-1);
+    card.append(header, element('h3', `Sandbox account ${index + 1}`), subtitle);
+    const detail = element('dl', undefined, 'account-details');
+    for (const [name, value] of [['Saved transactions', records.length], ['Currencies', currencies.join(', ')], ['Latest transaction', lastDate]]) {
+      detail.append(element('dt', name), element('dd', String(value)));
+    }
+    card.append(detail, element('p', 'Saved history · balance unavailable', 'account-footnote'));
+    return card;
+  }));
+  if (!accounts.size) $('account-cards').append(element('p', 'No imported accounts yet. Connect a Sandbox bank or load sample data above.', 'empty'));
 }
 
 function renderCategories(totals, format) {
@@ -208,10 +284,12 @@ for (const id of ['period', 'currency', 'source']) $(id).addEventListener('chang
 $('search').addEventListener('input', () => { state.page = 1; render(); });
 $('previous').addEventListener('click', () => { state.page--; render(); });
 $('next').addEventListener('click', () => { state.page++; render(); });
-$('add').addEventListener('click', () => {
+function openCashForm() {
   $('cash-form').reset(); $('cash-form').elements.date.value = localDate();
   $('form-error').hidden = true; $('cash-dialog').showModal();
-});
+}
+$('add').addEventListener('click', openCashForm);
+document.querySelectorAll('[data-add-cash]').forEach(button => button.addEventListener('click', openCashForm));
 $('close-dialog').addEventListener('click', () => $('cash-dialog').close());
 $('cash-form').addEventListener('submit', async event => {
   event.preventDefault();
@@ -228,10 +306,11 @@ $('cash-form').addEventListener('submit', async event => {
     }
     $('currency').value = saved.currency; $('period').value = 'all';
     $('source').value = 'all'; $('search').value = ''; state.page = 1;
+    location.hash = 'expenses';
     render(); $('cash-dialog').close(); notify('Cash purchase saved to the shared demo database.');
   } catch (error) { $('form-error').textContent = error.message; $('form-error').hidden = false; }
   finally { $('save-cash').disabled = false; }
 });
 
-render();
+navigate();
 refresh();

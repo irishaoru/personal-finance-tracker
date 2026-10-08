@@ -20,6 +20,13 @@ index.html as a file, because JavaScript modules require a server.
 
 ### Features
 
+Four hash-linked views: **Home** (overview and recent activity), **Expenses**
+(transaction search, filters, and cash entries), **Bank accounts** (connection
+controls and imported account IDs), and **Insights** (behavioral patterns).
+Links such as `#expenses` work on GitHub Pages and support browser back/forward.
+Accounts are derived from saved transaction records; the API does not supply
+account names or balances, so these are not invented.
+
 - Connect a simulated institution through Plaid Link; standard Sandbox test
   credentials are `user_good` / `pass_good`.
 - Load sample data directly for a quick demo without the Link interface.
@@ -35,7 +42,8 @@ https://personal-finance-tracker-backend-pak4.onrender.com
 ### Files to understand
 
 - `index.html`: page structure, controls, table, and cash entry dialog.
-- `styles.css`: colors, layout, charts, mobile breakpoints.
+- `styles.css`: base components, charts, and forms.
+- `layout.css`: sidebar, workspace theme, account cards, and mobile layouts.
 - `api.js`: backend URL, fetch wrapper, and retries while Plaid prepares data.
 - `insights.js`: pure filtering and summary functions.
 - `app.js`: state, DOM updates, events, and Plaid Link flow.
