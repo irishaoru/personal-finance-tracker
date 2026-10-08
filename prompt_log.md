@@ -1,109 +1,138 @@
 # Spendwise — Prompt Log
 
-> AI-generated layout. Fill in the bracketed sections with your own account of
-> the work, then remove the placeholders and instructions before submitting.
-> Copy important prompts verbatim. Never include credentials or access tokens.
-
 ## Tools and models used
+I used Codex inside of VS Code to build my project. I used it because I already have ChatGPT Plus so Codex just made sense in terms of usage benefits. I also just use OpenAI the most in general so I'm the most comfortable wiht it and it has memory from my previous projects so it understands how I work. I used it to build out my backend and frontend,help me work through any technical issues, and figure out how to add a database to my backend. 
 
-| Tool / model | What I used it for | Why I chose it |
-|---|---|---|
-| Codex / [model name if known; otherwise say unknown] | [Actual tasks] | [Your reason] |
-| [Other AI tool actually used, or remove this row] | [Task] | [Reason] |
+### Entry 1 — Initial prompt to build the backend
+now
+**My exact prompt:**
 
-## Development timeline
+" I am building a portfolio-ready personal finance web app for a CMU class project. The goal is to create a polished but manageable app in about 8 hours of focused work. I need to understand and be able to explain all of the code, so please avoid overengineering and keep the architecture simple and modular.
+PROJECT IDEA
+Build a “Personal Finance Behavior Dashboard” that helps users understand spending patterns, not just view totals.
+The user should be able to:
+1. Connect a simulated bank account using Plaid Sandbox
+2. Import fake transaction data from Plaid
+3. Manually add transactions, especially for cash purchases
+4. View a dashboard with charts and spending summaries
+5. See behavioral insights calculated from transaction data
+6. Use the app on desktop and mobile
+IMPORTANT:
+For this class project, I am using Plaid Sandbox only, not real bank accounts.
+CORE CONCEPT
+Plaid acts as a middleman between banks and my app.
+Flow:
+Bank / fake Sandbox institution
+        ↓
+      Plaid
+        ↓
+My backend
+        ↓
+My frontend/dashboard
+PLAID CREDENTIALS
+Plaid gives me:
+- PLAID_CLIENT_ID
+- PLAID_SECRET
+The client ID identifies my app.
+The secret authenticates my app.
+These should NOT be hardcoded into frontend JavaScript or committed to GitHub.
+Locally, use a .env file:
+PLAID_CLIENT_ID=...
+PLAID_SECRET=...
+PLAID_ENV=sandbox
+Make sure .env is in .gitignore.
+When deployed, the backend will likely be hosted on Render and the same values will be stored as Render environment variables.
+FIRST TASK
+Start with the backend only.
+Keep the backend minimal and explain each file before writing it.
+Important:
+- Never hardcode PLAID_CLIENT_ID or PLAID_SECRET.
+- Read them using process.env.
+- .env must be ignored by Git.
+- .env.example should contain placeholder names only, not real credentials.
+- Use Plaid Sandbox only.
+- Keep the access token in memory for now rather than adding a database.
+- Do not add authentication, user accounts, or persistence yet.
+Before writing code:
+1. explain what each endpoint does
+2. explain how the Plaid token flow works
+3. tell me which npm packages are required
+4. then create the files one at a time
+After the backend is running locally, help me test each endpoint before moving on to the frontend." 
+```
 
-Record actual sessions and honest time estimates, including reading code,
-testing, deployment, and personal edits. Do not invent hours or dates.
+**Result / what I understood:**
 
-| Date / session | Work completed | Time spent (label estimates) | Prompt entry / commit |
-|---|---|---|---|
-| [Date] | [Task] | [Duration] | [Reference] |
-| [Date] | [Task] | [Duration] | [Reference] |
+I understood at a high level how the app was using Plaid API to fetch the transaction data and using Flask as a way to communiate with the API, reutrning it as a JSON to the frontend.
 
-Total time: [Actual total or clearly labeled estimate]
-
-## Important prompts and development process
-
-Duplicate this entry for each important prompt, in chronological order. Paste
-your original messages exactly. The assignment's 15–40 prompts is an example,
-not a quota. You do not need to reproduce every short clarification.
-
-### Entry 1 — [Task or problem]
-
-- Date / session: [When]
-- Tool / model: [What you used]
-- Context: [What was missing or broken]
+### Entry 2 — Testing the backend locally
 
 **My exact prompt:**
 
-```text
-[Paste your original prompt verbatim.]
+```how do i test my backend locally before deploying to render?
 ```
 
 **What AI proposed or changed:**
 
-[Summarize the response and affected files. No need to paste the full response.]
-
-**What I did and checked:**
-
-[Your actions: reading code, testing, deploying, editing, or following up.
-Distinguish your direct code edits from changes you asked AI to make.]
+Gave me a list of steps and commands to run in my termainl. 
 
 **Result / what I understood:**
 
-[Outcome, explanation in your words, and a real test result or commit if available.]
+I understood how all the general steps worked for running a backend locally but needed help with anything that was specific to Plaid.
 
-### Entry 2 — [Next task or problem]
+### Entry 3 — Technical Issues
 
-- Date / session: [When]
-- Tool / model: [What you used]
-- Context: [Starting point]
+***My exact prompts:**
+1. {"error":"PLAID_UNAVAILABLE","message":"Could not reach Plaid. Try again shortly."}?
 
-**My exact prompt:**
+2. Address already in use
+Port 3001 is in use by another program. Either identify and stop that program, or start the server with a different port.
 
-```text
-[Paste your original prompt verbatim.]
-```
+3. It seems like everything is working. Can you double check before i deploy it onto render?
 
-**What AI proposed or changed:**
+4. Will render auto update if i change my code?
 
-[Your summary]
+### Entry 4 - Adding a Database
 
-**What I did and checked:**
+***My exact prompts:** 
+1. "add a database now i'm in my backend repository"
 
-[Your actual actions]
+2. "That needs your Render database and DATABASE_URL configured. - what does this mean?"
 
-**Result / what I understood:**
+3. "wait but since its in the same repository i think it auto updated in my current render project already? you want me to make a new one?"
 
-[Outcome]
+4. "what to do now?" - inserted a screenshot of New Postgres entry.
 
-Potential topics from this project's conversation: the initial backend request,
-switching to Flask, debugging HTTPS certificates, adding a database, configuring
-Render, building the frontend, adding sidebar navigation, and separating the
-pages' content. Use your actual prompts rather than these topic summaries.
+5. now how do i connect the database ot my existing backend web service?
+
+6. "why does it say "not found" at the base URL?"
+
+7. Is the data saved only for each person's brower? like if i went onto someone else's computer and tried to run this through github pages, i would have to reconnect?
+
+## Entry 4 - Initial frontend development 
+
+***My exact prompts:** 
+1. "help me create the frontend now on this new repository. use html, css, javascript. ask any questions you may have before starting"
+
+2. "ok so now do i just commit changes to github and go to the url? or do i need to do something to connect frontend and backend before testing it out?"
+
+3. "so change my frontend origin cuz i already have that as an environment varialbe?"
+
+### Entry 5 - UI Updates:
+
+4. i like it but maybe try to mimic this UI a bit? where there's buttons on the side. one for home with high level overviews, then expenses, bank accounts, etc. feel free to get creative with this put just make the layout more interesting with several different pages for poeople to click to. - inserted a screenshot of a dashboard/web app layout i really liked from another personal finance tracking app.
+
+5. some info is repeated on several pages like for expenses just include transaciotns and not the stuff above you alr include elsewhere you know hwat i mean? and for insights its just the same as homepage. maybe go more in depth with the insights or make homepage more high level up to you
+
 
 ## Code I wrote or meaningfully changed myself
 
-List direct edits you actually made. Asking AI to make an edit is different from
-making it yourself. If personal code edits are pending, complete them first.
-
-| File / feature | What I directly changed | Why | How I checked it |
-|---|---|---|---|
-| [File] | [Before / after] | [Reason] | [Result] |
-| [File] | [Actual edit] | [Reason] | [Result] |
-
-[Explain one change in your own words and link to its commit if available.]
+1. Edited explanatory text in index.html to make the dashboard clearer.
+2. Adjusted a layout rule in layout.css and check desktop/mobile behavior.
+3. Added the proposed transaction-count endpoint to the backend.
 
 ## One place AI got it wrong
-
-[Write one short paragraph: what AI got wrong, how it became apparent, what
-you did about it, who made the correction, and what you learned.]
-
-One real example you may discuss: the first duplicate-import check assumed the
-transaction count would stay unchanged while Plaid was still preparing history.
-The assistant corrected the check to reimport a fixed snapshot. Explain your
-own involvement honestly; do not claim you discovered or fixed it if you did not.
+One place AI got it wrong was when it gave me the list of steps for what to input to run my backend locally. For all the stpes, it told me to paste a certain command but it wasn't working because the port it told me to use was already taken and aparently Codex was running it elsewhere already. I had to tell Codex to stop running that port so it wasn't occupied anymore and I could use it to test my backend. Codex ddin't catch this problem initially until I brought it up.
 
 ## Final testing and limitations
 
