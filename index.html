@@ -40,6 +40,16 @@
       <article class="panel"><div class="panel-heading"><div><p class="eyebrow">LATEST ACTIVITY</p><h3>A few recent transactions</h3></div><a class="text-link" href="#expenses">See all →</a></div><div id="recent-transactions"></div></article>
       <article class="quick-card"><span class="quick-symbol" aria-hidden="true">↗</span><p class="eyebrow">YOUR NEXT SMALL STEP</p><h3>Give your money<br>some context.</h3><p>Connect a Sandbox bank to explore sample data, or capture a cash purchase you might otherwise miss.</p><a class="button" href="#accounts">Explore bank accounts →</a><button class="button" data-add-cash>+ Add cash purchase</button></article>
     </section>
+    <section class="saved-counts" data-views="accounts" aria-labelledby="saved-counts-title">
+      <div class="section-heading"><div><p class="eyebrow">YOUR SHARED DEMO</p><h2 id="saved-counts-title">Saved transaction counts</h2></div></div>
+      <p class="account-explainer">All saved dates and currencies, including pending transactions. These counts include everyone’s entries in this shared demo.</p>
+      <div class="metrics transaction-counts">
+        <article class="metric"><span>Sandbox imports</span><strong id="plaid-count">—</strong><small>Transactions imported from Plaid</small></article>
+        <article class="metric"><span>Manual cash entries</span><strong id="manual-count">—</strong><small>Transactions added by hand</small></article>
+        <article class="metric featured"><span>Total saved</span><strong id="saved-total-count">—</strong><small>All records in the database</small></article>
+      </div>
+      <p id="counts-status" class="account-explainer" role="status">Loading transaction counts…</p>
+    </section>
     <section class="account-section" data-views="accounts"><div class="section-heading"><div><p class="eyebrow">YOUR IMPORTED DATA</p><h2>Saved bank accounts</h2></div><span class="section-note" id="account-count">Based on saved transactions</span></div><p class="account-explainer">These accounts are identified from imported transaction records. Account names and balances aren’t provided by the saved-data API. A new Sandbox connection may add new accounts; older records remain saved.</p><div id="account-cards" class="account-grid"></div><article class="account-note"><span aria-hidden="true">◈</span><div><h3>What stays connected?</h3><p>Saved records live in the database. The active Plaid connection lives in server memory and may reset when the server restarts. Reconnect to import again; your saved history stays available.</p></div></article></section>
     <section class="deep-insights" data-views="insights">
       <article class="panel"><div class="panel-heading"><div><p class="eyebrow">THE TYPICAL VS. THE EXCEPTIONAL</p><h3>What does a usual purchase look like?</h3></div></div><div id="purchase-profile" class="purchase-profile"></div><p class="chart-footnote">Median is the middle purchase amount. A few large payments can pull the average much higher. Transfers and loan payments may be included.</p></article>

@@ -76,6 +76,21 @@ function renderConnection() {
   $('import').disabled = !state.connected || state.busy;
 }
 
+// This endpoint counts all saved records, independently of dashboard filters.
+async function loadCounts() {
+  $('counts-status').textContent = 'Loading transaction counts…';
+  try {
+    const counts = await request('/api/transactions/counts');
+    $('plaid-count').textContent = counts.plaid_count;
+    $('manual-count').textContent = counts.manual_count;
+    $('saved-total-count').textContent = counts.total_transactions;
+    $('counts-status').textContent = '';
+  } catch {
+    for (const id of ['plaid-count', 'manual-count', 'saved-total-count']) $(id).textContent = '—';
+    $('counts-status').textContent = 'Counts are unavailable. Try Refresh data; make sure the backend includes the counts endpoint.';
+  }
+}
+
 async function loadRecords() {
   const data = await request('/api/transactions');
   state.records = data.transactions || [];
@@ -87,6 +102,7 @@ async function loadRecords() {
   $('currency').value = currencies.includes(previous) ? previous : 'USD';
   state.page = 1;
   render();
+  await loadCounts();
 }
 
 async function refresh() {
@@ -346,6 +362,7 @@ $('cash-form').addEventListener('submit', async event => {
     $('source').value = 'all'; $('search').value = ''; state.page = 1;
     location.hash = 'expenses';
     render(); $('cash-dialog').close(); notify('Cash purchase saved to the shared demo database.');
+    await loadCounts();
   } catch (error) { $('form-error').textContent = error.message; $('form-error').hidden = false; }
   finally { $('save-cash').disabled = false; }
 });

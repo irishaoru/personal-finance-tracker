@@ -205,3 +205,8 @@ input:focus,select:focus { outline-color: #a1acf2; }
   .profile-fact small { grid-column: 1; }
   .size-band .category-label { flex-wrap: wrap; }
 }
+
+/* Counts come from the backend and cover the entire shared database. */
+.saved-counts { margin-bottom: 30px; }
+.transaction-counts { grid-template-columns: repeat(3, minmax(0, 1fr)); }
+@media(max-width:600px) { .transaction-counts { grid-template-columns: 1fr; } }
